@@ -41,8 +41,8 @@ install:
   - set PATH=%PATH%;"%WIX%\bin"
 
 test_script:
-  - cargo test --no-default-features -p t-rex-core --target %TARGET%
-  - cargo test --no-default-features -p t-rex-core --target %TARGET% --release
+  - cargo test --all --target %TARGET%
+  - cargo test --all --target %TARGET% --release
   # - cargo run --no-default-features --target %TARGET% --release
 
 before_deploy:
