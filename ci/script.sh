@@ -31,6 +31,21 @@ main() {
     fi
 }
 
+dockerimg() {
+    pushd packaging/docker
+    # travis uid/gid is 2000/2000, but we build with default uid 1000
+    docker build -t t-rex-tileserver/t-rex -f Dockerfile .
+    docker run -t -i t-rex-tileserver/t-rex --version
+
+    # Copy generated DEB package
+    deb=$(docker run --entrypoint="" t-rex-tileserver/t-rex ls / | grep .deb)
+    docker run --entrypoint="" -v /tmp:/var/data/out t-rex-tileserver/t-rex cp /$deb /var/data/out/
+    popd
+}
+
+if [ $TRAVIS_OS_NAME = linux ]; then
+    dockerimg
+fi
 # we don't run the "test phase" when doing deploys
 if [ -z $TRAVIS_TAG ]; then
     main

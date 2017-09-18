@@ -9,6 +9,7 @@
 
 FROM ubuntu:xenial
 
+ARG gitref
 ARG uid
 
 RUN apt-get -y update && apt-get install -y wget make
@@ -49,17 +50,18 @@ RUN gpg --export --armor 314DF160 | apt-key add -
 RUN apt-get update && apt-get install -y libgdal-dev
 
 # Build t-rex
-RUN wget -qO- https://github.com/t-rex-tileserver/t-rex/archive/master.tar.gz | tar xzf -
-RUN cd t-rex-master && cargo build --release
+RUN wget -qO- https://api.github.com/repos/t-rex-tileserver/t-rex/tarball/${gitref:-master} | tar xzf -
+RUN cd t-rex-tileserver* && cargo build --release
 
 # Build DEB package
 RUN apt-get update && apt-get install -y fakeroot
 
-RUN VERSION=$(grep version t-rex-master/Cargo.toml | sed 's/version = "\(.*\)"/\1/') && \
+RUN SRC=$(ls | grep t-rex-tileserver) && \
+    VERSION=$(grep version $SRC/Cargo.toml | sed 's/version = "\(.*\)"/\1/') && \
     ARCH=$(dpkg --print-architecture) && \
     mkdir -p debian/usr/bin && \
     \
-    install -m0755 t-rex-master/target/release/t_rex debian/usr/bin/ && \
+    install -m0755 $SRC/target/release/t_rex debian/usr/bin/ && \
     strip -s debian/usr/bin/t_rex && \
     \
     mkdir -p debian/DEBIAN && \
@@ -74,8 +76,8 @@ Depends: openssl, libgdal20\n"\
     mv debian.deb t-rex-$VERSION-$ARCH-ubuntugis~xenial.deb && \
     echo t-rex-$VERSION-$ARCH-ubuntugis-xenial.deb
 
-# t_rex execution from Docker
-RUN mv t-rex-master/target/release/t_rex /usr/local/bin/ && rm -rf t-rex-master/target
+RUN dpkg -i t-rex-*-ubuntugis~xenial.deb && rm -rf debian
+RUN rm -rf t-rex-tileserver*/target
 
 RUN useradd --uid ${uid:-1000} --create-home rust
 USER rust
@@ -86,4 +88,4 @@ VOLUME ["/var/data/in"]
 VOLUME ["/var/data/out"]
 
 EXPOSE 6767
-ENTRYPOINT ["/usr/local/bin/t_rex"]
+ENTRYPOINT ["/usr/bin/t_rex"]
