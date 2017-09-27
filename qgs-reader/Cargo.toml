@@ -1,0 +1,27 @@
+[package]
+name = "qgs-reader"
+version = "0.8.1-dev"
+description = "vector tile server"
+repository = "https://github.com/t-rex-tileserver/t-rex"
+readme = "../README.md"
+license = "MIT"
+authors = ["Pirmin Kalberer <pka@sourcepole.ch>"]
+workspace = ".."
+
+[lib]
+doctest = false
+
+[dependencies]
+log = "*"
+elementtree = "*"
+
+[dependencies.t-rex-core]
+path = "../t-rex-core"
+
+[dependencies.t-rex-gdal]
+path = "../t-rex-gdal"
+optional = true
+
+[features]
+default = ["with-gdal"]
+with-gdal = ["t-rex-gdal"]
